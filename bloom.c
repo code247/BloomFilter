@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 
 #define k 8
-#define ARRAY_SIZE 62500
+#define ARRAY_SIZE 2000000
 #define SetBit(A,k) ( A[(k/32)] |= (1 << (k%32)) )
 #define GetBit(A,k) ( A[(k/32)] & (1 << (k%32)) )
 
@@ -20,7 +21,7 @@ bf_t * create_bf(){
 	bf_t *bloom = (bf_t *) malloc(sizeof(bf_t));
 	bloom->numHashes = k;
 	for(i = 0; i < k; i++){
-		bloom->hashes[i] = calloc(ARRAY_SIZE, sizeof(int));
+		bloom->hashes[i] = calloc(ARRAY_SIZE / 32, sizeof(int));
 	}
 	return bloom;
 }
@@ -29,7 +30,7 @@ void insert_bf(bf_t *b, char *s){
 	int i;
 	uint32_t h;
 	for(i = 0; i < b->numHashes; i++){
-		h = murmur3_32(s, sizeof(char), (i + 1) * 10);
+		h = murmur3_32(s, strlen(s), (i + 1) * 10);
 		SetBit(b->hashes[i], h % ARRAY_SIZE);
 	}
 }
@@ -38,7 +39,7 @@ int is_element(bf_t *b, char *q){
 	int i;
 	uint32_t h;
 	for(i = 0; i < b->numHashes; i++){
-		h = murmur3_32(q, sizeof(char), (i + 1) * 10);
+		h = murmur3_32(q, strlen(q), (i + 1) * 10);
 		if(!GetBit(b->hashes[i], h % ARRAY_SIZE)){
 			return 0;
 		}
